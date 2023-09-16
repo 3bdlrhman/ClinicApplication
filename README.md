@@ -35,7 +35,7 @@ dotnet restore
 
 ## Notes
 
-This app is based on rules so admin can view the dashboard and the secretary page
+This app is based on Roles so admin can view the dashboard and the secretary page
 And Secretary can only view secretary page
 
 ### ADMIN   [AdminUser@email.com] 
