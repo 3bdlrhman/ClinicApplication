@@ -1,0 +1,186 @@
+﻿@model ClinicApplication.Models.ViewModels.NewAppointment
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.28/sweetalert2.min.css" integrity="sha512-IScV5kvJo+TIPbxENerxZcEpu9VrLUGh1qYWv6Z9aylhxWE4k4Fch3CHl0IYYmN+jrnWQBPlpoTVoWfSMakoKA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<div class="form-control p-2 mb-2">
+    <h2>New Appointment</h2>
+</div>
+
+<div class="form-control p-4">
+    <div class="form-group pb-3">
+        <label asp-for="DoctorName">Doctor</label>
+        <select id="docDrop" asp-for="DoctorName" asp-items="@(ViewBag.DoctorNames)" class="form-control dropdown">
+            <option selected value="" class="dropdown-item">Select doctor</option>
+        </select>
+    </div>
+
+    <div class="form-group pb-3">
+        <label asp-for="PatientName">Patient Name</label>
+        <input asp-for="PatientName" id="patientName" class="form-control" />
+    </div>
+
+    <div class="form-group pb-3">
+        <label asp-for="PatientName">Patient Age</label>
+        <input asp-for="PatientAge" id="patientAge" class="form-control" />
+        <span asp-validation-for="PatientAge" class="text-danger d-none">Age should be from 16 to 85</span>
+    </div>
+
+    <div class="form-group pb-3">
+        <label asp-for="Date">Date</label>
+        <input asp-for="Date" id="Date" type="date" class="form-control" />
+    </div>
+
+    <div class="form-group pb-3">
+        <label asp-for="StartTime">Start Time</label>
+        <input asp-for="StartTime" id="startTime" data-valid="false" type="time" class="form-control" />
+    </div>
+
+    <div class="form-group pb-3">
+        <label asp-for="EndTime">End Time</label>
+        <input asp-for="EndTime" id="endTime" type="time" class="form-control" />
+    </div>
+
+    <button type="button" id="submit" class="btn btn-primary align-content-center">Create</button>
+    <a href="/Secretary/Index" class="btn btn-secondary align-content-center">Back to list</a>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.28/sweetalert2.min.js" integrity="sha512-CyYoxe9EczMRzqO/LsqGsDbTl3wBj9lvLh6BYtXzVXZegJ8VkrKE90fVZOk1BNq3/9pyg+wn+TR3AmDuRjjiRQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+
+    $(document).ready(function() {
+        document.getElementById("Date").min = new Date().toISOString().split("T")[0];
+
+        $('#Date').change(function() {
+            debugger
+            var startDate = $('#Date').val(); // Get patient name
+            var selectedDoctorId = $('#docDrop').val(); // Get the selected doctor's ID
+
+            if (selectedDoctorId !== "") {
+                $.ajax({
+                url: '/Secretary/CheckDoctorWorkDay',
+                type: 'GET',
+                data:
+                {
+                    startDate: startDate,
+                    doctorId: selectedDoctorId
+                },
+                success: function(response) {
+                    debugger
+
+                    if (response != 'True') {
+                        Swal.fire('Info',response, 'info');
+                    }
+                },
+                error: function(x, y, z) {
+                    Swal.fire('Error', 'Some error happened!', 'error');
+                }
+            })
+            }
+        })
+
+        $('#startTime').change(function() {
+            var startTime = $('#startTime').val(); // Get patient name
+            var startDate = $('#Date').val(); // Get patient name
+            var selectedDoctorId = $('#docDrop').val(); // Get the selected doctor's ID
+
+
+            // Check if the selected value is not empty (i.e., not the default)
+            if (selectedDoctorId !== "" && startDate !== "") {
+                $.ajax({
+                    url: '/Secretary/CheckDoctorTime',
+                    type: 'GET',
+                    data: {
+                        startTime: startTime,
+                        startDate: startDate,
+                        doctorId: selectedDoctorId
+                    },
+                    success: function(data) {
+                        if (data == true) {
+
+                            $('#startTime').attr('data-valid', 'true');
+
+                            // Parse the start time to extract hours and minutes
+                            var startTimeArray = startTime.split(':');
+                            var startHour = parseInt(startTimeArray[0]);
+                            var startMinute = parseInt(startTimeArray[1]);
+
+                            // Add 30 minutes to the start time
+                            var endHour = startHour;
+                            var endMinute = startMinute + 30;
+
+                            // Handle carry-over to the next hour
+                            if (endMinute >= 60) {
+                                endHour++;
+                                endMinute -= 60;
+                            }
+
+                            // Format the end time as HH:mm
+                            var endTimeValue = ('0' + endHour).slice(-2) + ':' + ('0' + endMinute).slice(-2);
+
+                            // Set the value of the end time input
+                            $('#endTime').val(endTimeValue);
+                            Swal.fire('Available!', 'This time is available', 'Success');
+                        } else {
+                            $('#startTime').attr('data-valid', 'false');
+                            Swal.fire('Not Available!', 'This time is not available', 'info');
+                        }
+                    },
+                    error: function(x, y, z) {
+                        $('#startTime').attr('data-valid', 'false');
+                        Swal.fire('Error', 'Some error happened!', 'error');
+                    }
+                })
+            }
+        })
+
+        $('#submit').click(function(e) {
+            e.preventDefault();
+
+            var selectedDoctorId = $('#docDrop').val(); // Get the selected doctor's ID
+            var selectedDayId = $('#daysDrop').val(); // Get the selected day's ID
+
+            var patientName = $('#patientName').val(); // Get patient name
+            var patientAge = $('#patientAge').val(); // Get patient age
+
+            var Date = $('#Date').val(); // Get patient name
+
+            var startTime = $('#startTime').val(); // Get patient name
+            var endTime = $('#endTime').val(); // Get patient age
+
+            let appointment = {
+                doctorId: selectedDoctorId,
+                patientName: patientName,
+                patientAge: patientAge,
+                startTime: startTime,
+                endTime: endTime,
+                Date: Date
+            }
+
+            if ($('#startTime').attr('data-valid') == 'true' && patientName !== "") {
+                // Make an AJAX request to getAvailabledays action
+                $.ajax({
+                    url: '/Secretary/Create', // Update the URL to match your controller and action
+                    method: 'POST',
+                    data:
+                    {
+                        appointment: appointment
+                    },
+                    success: function(data) {
+                        // Update the availableDays div with the response data
+                        if (data == "True") {
+                            Swal.fire('Good job!', 'New Appointement Created!', 'success');
+                        } else {
+                            Swal.fire('Sorry!', 'Couldnt Add Your Appointement!', 'error');
+                        }
+                    },
+                    error: function(error) {
+                        Swal.fire('Sorry!', 'Couldnt Add Your Appointement!', 'error');
+                    }
+                });
+            }
+            else {
+                Swal.fire('Sorry!', 'Couldnt Add Your Appointement!', 'error');
+            }
+
+        });
+    });
+</script>

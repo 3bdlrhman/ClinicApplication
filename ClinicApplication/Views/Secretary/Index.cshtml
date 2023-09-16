@@ -1,0 +1,83 @@
+﻿@model IEnumerable<ClinicApplication.Models.ViewModels.NewAppointment>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<style>
+    th, td{
+        padding: 2px;
+        text-align: center;
+        justify-content: center;
+    }
+</style>
+
+<div class="form-control mb-3 d-flex">
+    <h1 class="form-label w-100">
+        All Appointments
+    </h1>
+                <a asp-action="Create" title="Add New" class="btn btn-primary btn-sm m-auto">Add</a>
+
+    @*<div class="w-50 d-flex">
+        <input type="text" class="form-control w-75 m-2 p-1" />
+        <input type="button" class="form-control btn btn-success w-25 m-2 p-1" value="Seach" id="Search" />
+    </div>*@
+</div>
+
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Date)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DayName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DoctorName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PatientName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StartTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EndTime)
+            </th>
+
+            <th>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Date)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DayName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DoctorName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PatientName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EndTime)
+                </td>
+
+                <td>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
